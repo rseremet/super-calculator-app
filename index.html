@@ -5,56 +5,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Супер-Калькулятор и Конвертер</title>
+    <title>DeshMoney Калькулятор</title>
     <style>
         /* ==================================== */
-        /* Стили: чтобы было очень красиво! */
+        /* Стили: Космический фон и Glassmorphism */
         /* ==================================== */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-color: #f0f2f5;
+            --accent-color: #4dc2ff; /* Яркий, но холодный синий */
+            --operator-color: #008cff; /* Более темный синий для операторов */
+        }
+        
         body {
             font-family: 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
             margin: 0;
             padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             min-height: 100vh;
+            
+            /* Ваш космический фон */
+            background-image: url('image_aebac8.jpg'); /* Убедитесь, что файл .jpg загружен в репозиторий */
+            background-size: cover;
+            background-attachment: fixed;
+            color: var(--text-color);
         }
 
         .container {
             width: 100%;
             max-width: 450px;
-            background: #ffffff;
+            
+            /* Эффект Glassmorphism */
+            background: rgba(0, 0, 0, 0.5); /* Темный фон с прозрачностью */
+            backdrop-filter: blur(10px); /* Размытие фона */
+            -webkit-backdrop-filter: blur(10px);
+            
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             padding: 30px;
         }
 
         h2 {
-            color: #007aff; /* Яркий синий цвет Apple */
+            color: var(--accent-color);
             text-align: center;
             margin-bottom: 25px;
+            font-size: 2em;
+        }
+        
+        /* Выбор базовой валюты */
+        .base-currency-select {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-weight: 600;
         }
 
+        #base-currency {
+            flex-grow: 1;
+            padding: 10px;
+            margin-left: 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-color);
+            border: 1px solid var(--glass-border);
+            -webkit-appearance: none; /* Убрать стандартный вид в Safari/Chrome */
+            appearance: none;
+            font-size: 1em;
+        }
+        
         /* Поле ввода */
         #input-value {
             width: 100%;
             padding: 15px;
             margin-bottom: 20px;
-            font-size: 2em;
+            font-size: 2.5em;
             text-align: right;
             border: none;
             border-radius: 10px;
-            background-color: #e8f0fe; /* Светло-голубой фон */
+            background: rgba(255, 255, 255, 0.05); /* Легкий эффект */
             box-sizing: border-box;
             outline: none;
-            color: #1c1c1e;
+            color: white;
             transition: box-shadow 0.2s;
         }
 
         #input-value:focus {
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.4);
+            box-shadow: 0 0 0 3px var(--accent-color);
         }
 
         /* Кнопки калькулятора */
@@ -66,33 +107,39 @@
         }
 
         .btn {
-            padding: 15px 0;
-            font-size: 1.2em;
+            padding: 18px 0;
+            font-size: 1.3em;
             border: none;
-            border-radius: 10px;
+            border-radius: 15px;
             cursor: pointer;
             transition: background-color 0.1s, transform 0.1s;
-            background-color: #e0e0e6;
-            color: #333;
+            
+            /* Стиль Glassmorphism для кнопок */
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-color);
+            font-weight: 500;
         }
 
         .btn:active {
             transform: scale(0.95);
+            background-color: rgba(255, 255, 255, 0.2);
         }
 
         .btn.operator {
-            background-color: #ff9500; /* Ярко-оранжевый */
+            background-color: var(--operator-color); 
             color: white;
+            font-weight: bold;
         }
         
         .btn.clear {
-            background-color: #ff3b30; /* Красный для очистки */
+            background-color: #ff5e5e; /* Красный для очистки */
             color: white;
         }
 
         /* Конвертер валют */
         .converter {
-            border-top: 2px solid #e0e0e6;
+            border-top: 1px solid var(--glass-border);
             padding-top: 20px;
         }
 
@@ -100,8 +147,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 1.1em;
         }
         
@@ -110,19 +157,36 @@
         }
 
         .currency-name {
-            font-weight: 600;
-            color: #555;
+            font-weight: 500;
+            color: var(--text-color);
         }
 
         .currency-value {
             font-weight: 700;
-            color: #1c1c1e;
+            color: var(--accent-color); /* Яркий цвет для результата */
+        }
+        
+        /* Стили для лоадера */
+        .loading-rates {
+            text-align: center;
+            color: #ffc107;
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>✨ Ваш Финансовый Инструмент</h2>
+        <h2>✨ DeshMoney</h2>
+        
+        <div class="base-currency-select">
+            База:
+            <select id="base-currency" onchange="updateConverter(input.value)">
+                <option value="USD">🇺🇸 Доллар (USD)</option>
+                <option value="CNY">🇨🇳 Юань (CNY)</option>
+                <option value="UAH">🇺🇦 Гривна (UAH)</option>
+                <option value="PLN">🇵🇱 Злотый (PLN)</option>
+            </select>
+        </div>
         
         <input type="text" id="input-value" value="0" readonly>
 
@@ -152,57 +216,87 @@
         </div>
 
         <div class="converter">
-            <h3>💱 Конвертация (Базовая валюта: USD)</h3>
+            <h3>💱 Результаты конвертации</h3>
+            <div class="loading-rates" id="loading-message">Загрузка актуальных курсов...</div>
             
-            <div class="currency-result">
-                <span class="currency-name">🇺🇸 USD (Доллар)</span>
+            <div class="currency-result" data-currency="USD">
+                <span class="currency-name">🇺🇸 Доллар (USD)</span>
                 <span class="currency-value" id="res-usd">0.00</span>
             </div>
             
-            <div class="currency-result">
-                <span class="currency-name">🇨🇳 CNY (Юань)</span>
+            <div class="currency-result" data-currency="CNY">
+                <span class="currency-name">🇨🇳 Юань (CNY)</span>
                 <span class="currency-value" id="res-cny">0.00</span>
             </div>
 
-            <div class="currency-result">
-                <span class="currency-name">🇺🇦 UAH (Гривна)</span>
+            <div class="currency-result" data-currency="UAH">
+                <span class="currency-name">🇺🇦 Гривна (UAH)</span>
                 <span class="currency-value" id="res-uah">0.00</span>
             </div>
             
-            <div class="currency-result">
-                <span class="currency-name">🇵🇱 PLN (Злотый)</span>
+            <div class="currency-result" data-currency="PLN">
+                <span class="currency-name">🇵🇱 Злотый (PLN)</span>
                 <span class="currency-value" id="res-pln">0.00</span>
             </div>
-
         </div>
     </div>
 
     <script>
         /* ==================================== */
-        /* JavaScript: Логика Калькулятора и Конвертера */
+        /* JavaScript: Логика Калькулятора и Конвертера (с API) */
         /* ==================================== */
         const input = document.getElementById('input-value');
+        const baseCurrencySelect = document.getElementById('base-currency');
         let currentExpression = '0';
         let isResultDisplayed = false;
+        
+        // ВАШ API КЛЮЧ
+        const API_KEY = 'fb34ef6c5c479e7e4461d838'; 
+        const API_URL_BASE = 'https://v6.exchangerate-api.com/v6/';
+        
+        let EXCHANGE_RATES = {}; // Тут будут храниться актуальные курсы (USD/X)
 
-        // Фиктивные курсы валют (для примера)
-        // ВАЖНО: В реальном приложении эти данные нужно получать через API!
-        // Курс USD/X: 1 USD = X
-        const EXCHANGE_RATES = {
-            'CNY': 7.27, // 1 USD = 7.27 CNY (примерно)
-            'UAH': 39.50, // 1 USD = 39.50 UAH (примерно)
-            'PLN': 4.10, // 1 USD = 4.10 PLN (примерно)
-            'USD': 1.00   // Базовая валюта
-        };
+        const TARGET_CURRENCIES = ['USD', 'CNY', 'UAH', 'PLN'];
 
-        // 1. Логика калькулятора
+        // 1. Запрос актуальных курсов валют (относительно USD)
+        async function fetchRates() {
+            const loadingMessage = document.getElementById('loading-message');
+            loadingMessage.style.display = 'block';
+            
+            try {
+                // Всегда запрашиваем курсы относительно USD, чтобы было проще пересчитывать
+                const response = await fetch(`${API_URL_BASE}${API_KEY}/latest/USD`); 
+                const data = await response.json();
+
+                if (data.result === 'success') {
+                    // Сохраняем курсы
+                    EXCHANGE_RATES = data.conversion_rates;
+                    loadingMessage.textContent = 'Курсы обновлены!';
+                    loadingMessage.style.color = '#4caf50'; // Зеленый
+                    
+                    // Обновляем конвертер, используя текущее значение в поле ввода
+                    updateConverter(input.value);
+                } else {
+                    loadingMessage.textContent = 'Ошибка загрузки курсов. Используются старые данные.';
+                    loadingMessage.style.color = '#ff9800'; // Оранжевый
+                    // Здесь можно вставить старые курсы, если они есть
+                }
+            } catch (error) {
+                loadingMessage.textContent = 'Ошибка сети. Проверьте подключение.';
+                loadingMessage.style.color = '#f44336'; // Красный
+                console.error("Не удалось получить актуальные курсы:", error);
+            }
+            // Скрываем сообщение через 3 секунды
+            setTimeout(() => { loadingMessage.style.display = 'none'; }, 3000);
+        }
+
+
+        // 2. Логика калькулятора
         function appendInput(value) {
             if (isResultDisplayed) {
-                // Если отображен результат, то новое нажатие начинает новое вычисление
                 if (/[0-9.]/.test(value)) {
                     currentExpression = value;
                 } else {
-                    // Если нажали оператор, используем результат как начало
                     currentExpression = input.value + value;
                 }
                 isResultDisplayed = false;
@@ -227,17 +321,14 @@
 
         function calculateResult() {
             try {
-                // Используем eval для простоты, но для "очень больших чисел"
-                // лучше использовать библиотеки типа Big.js или decimal.js.
-                // Для большинства веб-задач стандартный JS Number (до 15 знаков) достаточен.
+                // Для больших чисел, если нужно, используйте Big.js
                 const result = eval(currentExpression);
                 
-                // Форматируем результат для красивого вывода
                 currentExpression = String(result);
                 input.value = result.toLocaleString('en-US', {maximumFractionDigits: 10});
                 
                 isResultDisplayed = true;
-                updateConverter(result); // Обновляем конвертер с итоговым результатом
+                updateConverter(result); 
             } catch (e) {
                 input.value = 'Ошибка';
                 currentExpression = '0';
@@ -246,56 +337,58 @@
             }
         }
         
-        // 2. Логика конвертера валют
-        function updateConverter(usdAmountStr) {
-            let usdAmount = parseFloat(usdAmountStr) || 0;
-
-            // Вывод базовой суммы в USD
-            document.getElementById('res-usd').textContent = usdAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        // 3. Логика конвертера валют с учетом базовой валюты
+        function updateConverter(amountStr) {
+            let amount = parseFloat(amountStr) || 0;
+            const baseCurrency = baseCurrencySelect.value;
             
-            // Расчет и вывод других валют
-            
-            // CNY (Юань)
-            const cnyResult = usdAmount * EXCHANGE_RATES.CNY;
-            document.getElementById('res-cny').textContent = cnyResult.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            
-            // UAH (Гривна)
-            const uahResult = usdAmount * EXCHANGE_RATES.UAH;
-            document.getElementById('res-uah').textContent = uahResult.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            
-            // PLN (Злотый)
-            const plnResult = usdAmount * EXCHANGE_RATES.PLN;
-            document.getElementById('res-pln').textContent = plnResult.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        // Инициализация при загрузке
-        updateConverter('0'); 
-
-        /* ==================================== */
-        /* ДЛЯ РЕАЛЬНОГО ИСПОЛЬЗОВАНИЯ API (ПРИМЕР) */
-        /* ==================================== */
-        /*
-        // Асинхронная функция для получения реальных курсов
-        async function fetchRates() {
-            try {
-                // Замените YOUR_API_KEY на ваш реальный ключ
-                // и выберите подходящий API (например, ExchangeRate-API)
-                // const response = await fetch('URL_ВАШЕГО_API?apikey=YOUR_API_KEY'); 
-                // const data = await response.json();
-                
-                // Пример: если API возвращает курсы относительно USD:
-                // EXCHANGE_RATES.CNY = data.rates.CNY;
-                // EXCHANGE_RATES.UAH = data.rates.UAH;
-                // EXCHANGE_RATES.PLN = data.rates.PLN;
-
-                console.log("Курсы успешно обновлены!");
-            } catch (error) {
-                console.error("Не удалось получить актуальные курсы:", error);
-                alert("Не удалось загрузить актуальные курсы валют. Используются фиктивные данные.");
+            // Если курсы еще не загружены, выходим
+            if (Object.keys(EXCHANGE_RATES).length === 0) {
+                // Просто отображаем текущую сумму в поле ввода, пока ждем курсы
+                document.getElementById('res-' + baseCurrency.toLowerCase()).textContent = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return; 
             }
+
+            // ШАГ 1: Конвертируем введенную сумму в БАЗУ (USD)
+            // Курсы в EXCHANGE_RATES даны как 1 USD = X.
+            // Чтобы получить 1 X = USD, нужно разделить на X (Курс/USD).
+            let amountInUSD = 0;
+            if (baseCurrency === 'USD') {
+                amountInUSD = amount;
+            } else if (EXCHANGE_RATES[baseCurrency]) {
+                // 1 USD = X * BaseRate. Значит, X Base = 1 USD / BaseRate
+                amountInUSD = amount / EXCHANGE_RATES[baseCurrency];
+            }
+            
+            // ШАГ 2: Пересчитываем сумму в USD во все целевые валюты
+            TARGET_CURRENCIES.forEach(target => {
+                let finalResult = 0;
+                
+                if (target === 'USD') {
+                    finalResult = amountInUSD;
+                } else if (EXCHANGE_RATES[target]) {
+                    // 1 USD = X * TargetRate
+                    finalResult = amountInUSD * EXCHANGE_RATES[target];
+                }
+
+                // Вывод результата
+                const element = document.getElementById('res-' + target.toLowerCase());
+                if (element) {
+                     // Выделяем базовую валюту белым, остальные синим
+                     const color = (target === baseCurrency) ? 'white' : var(--accent-color);
+                     element.style.color = color;
+
+                    element.textContent = finalResult.toLocaleString('en-US', { 
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2 
+                    });
+                }
+            });
         }
-        // fetchRates(); // Раскомментируйте, чтобы начать использовать реальный API
-        */
+
+        // Инициализация при загрузке: загружаем курсы и запускаем конвертер
+        fetchRates();
+        updateConverter('0'); 
     </script>
 </body>
 </html>
