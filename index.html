@@ -243,72 +243,72 @@
 
     <script>
         /* ==================================== */
-        /* JavaScript: Логика Калькулятора и Конвертера (с API) */
+        /* JavaScript: Логика Калькулятора и Конвертера (Исправлено) */
         /* ==================================== */
         const input = document.getElementById('input-value');
         const baseCurrencySelect = document.getElementById('base-currency');
         let currentExpression = '0';
         let isResultDisplayed = false;
-        
-        // ВАШ API КЛЮЧ
-        const API_KEY = 'fb34ef6c5c479e7e4461d838'; 
-        const API_URL_BASE = 'https://v6.exchangerate-api.com/v6/';
-        
-        let EXCHANGE_RATES = {}; // Тут будут храниться актуальные курсы (USD/X)
 
+        // ВАШ API КЛЮЧ
+        const API_KEY = 'fb34ef6c5c479e7e4461d838';
+        const API_URL_BASE = 'https://v6.exchangerate-api.com/v6/';
+
+        let EXCHANGE_RATES = {}; // Тут будут храниться актуальные курсы
         const TARGET_CURRENCIES = ['USD', 'CNY', 'UAH', 'PLN'];
 
         // 1. Запрос актуальных курсов валют (относительно USD)
         async function fetchRates() {
             const loadingMessage = document.getElementById('loading-message');
             loadingMessage.style.display = 'block';
-            
+
             try {
-                // Всегда запрашиваем курсы относительно USD, чтобы было проще пересчитывать
-                const response = await fetch(`${API_URL_BASE}${API_KEY}/latest/USD`); 
+                const response = await fetch(`${API_URL_BASE}${API_KEY}/latest/USD`);
                 const data = await response.json();
 
                 if (data.result === 'success') {
-                    // Сохраняем курсы
                     EXCHANGE_RATES = data.conversion_rates;
                     loadingMessage.textContent = 'Курсы обновлены!';
-                    loadingMessage.style.color = '#4caf50'; // Зеленый
-                    
-                    // Обновляем конвертер, используя текущее значение в поле ввода
-                    updateConverter(input.value);
+                    loadingMessage.style.color = '#4caf50';
+
+                    // Как только курсы загружены, запускаем конвертацию с текущим значением
+                    updateConverter(currentExpression);
                 } else {
-                    loadingMessage.textContent = 'Ошибка загрузки курсов. Используются старые данные.';
-                    loadingMessage.style.color = '#ff9800'; // Оранжевый
-                    // Здесь можно вставить старые курсы, если они есть
+                    loadingMessage.textContent = 'Ошибка загрузки курсов. Проверьте ключ API.';
+                    loadingMessage.style.color = '#ff9800';
                 }
             } catch (error) {
                 loadingMessage.textContent = 'Ошибка сети. Проверьте подключение.';
-                loadingMessage.style.color = '#f44336'; // Красный
+                loadingMessage.style.color = '#f44336';
                 console.error("Не удалось получить актуальные курсы:", error);
             }
-            // Скрываем сообщение через 3 секунды
+            // Скрываем сообщение через 3 секунды, чтобы оно не мешало
             setTimeout(() => { loadingMessage.style.display = 'none'; }, 3000);
         }
 
 
         // 2. Логика калькулятора
         function appendInput(value) {
-            if (isResultDisplayed) {
-                if (/[0-9.]/.test(value)) {
-                    currentExpression = value;
-                } else {
-                    currentExpression = input.value + value;
-                }
+            // Если отображен результат И нажата цифра/точка, начинаем новое выражение
+            if (isResultDisplayed && /[0-9.]/.test(value)) {
+                currentExpression = value;
+                isResultDisplayed = false;
+            // Если отображен результат И нажат оператор, продолжаем с результатом
+            } else if (isResultDisplayed && !/[0-9.]/.test(value)) {
+                // Если после '=' нажимают оператор, используем результат как начало нового выражения
+                currentExpression = input.value.replace(/,/g, '') + value; // Убираем форматирование
                 isResultDisplayed = false;
             } else {
+                // Обычный ввод
                 if (currentExpression === '0' && value !== '.') {
                     currentExpression = value;
                 } else {
                     currentExpression += value;
                 }
             }
+
             input.value = currentExpression;
-            // После ввода, сразу обновляем конвертер
+            // Обновляем конвертер при каждом вводе
             updateConverter(currentExpression);
         }
 
@@ -321,14 +321,17 @@
 
         function calculateResult() {
             try {
-                // Для больших чисел, если нужно, используйте Big.js
-                const result = eval(currentExpression);
-                
+                // Заменяем символы "÷" на "/" и "×" на "*" для корректного eval
+                const safeExpression = currentExpression.replace(/×/g, '*').replace(/÷/g, '/');
+
+                const result = eval(safeExpression);
+
                 currentExpression = String(result);
+                // Красивое форматирование для вывода
                 input.value = result.toLocaleString('en-US', {maximumFractionDigits: 10});
-                
+
                 isResultDisplayed = true;
-                updateConverter(result); 
+                updateConverter(result);
             } catch (e) {
                 input.value = 'Ошибка';
                 currentExpression = '0';
@@ -336,38 +339,40 @@
                 updateConverter('0');
             }
         }
-        
+
         // 3. Логика конвертера валют с учетом базовой валюты
         function updateConverter(amountStr) {
-            let amount = parseFloat(amountStr) || 0;
+            // Чистим ввод от запятых, чтобы parseFloat работал корректно
+            let amount = parseFloat(String(amountStr).replace(/,/g, '')) || 0;
             const baseCurrency = baseCurrencySelect.value;
-            
-            // Если курсы еще не загружены, выходим
+
+            // Если курсы еще не загружены, просто отображаем "0.00"
             if (Object.keys(EXCHANGE_RATES).length === 0) {
-                // Просто отображаем текущую сумму в поле ввода, пока ждем курсы
-                document.getElementById('res-' + baseCurrency.toLowerCase()).textContent = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                return; 
+                 TARGET_CURRENCIES.forEach(target => {
+                    const element = document.getElementById('res-' + target.toLowerCase());
+                    if (element) {
+                        element.textContent = '0.00';
+                    }
+                });
+                return;
             }
 
             // ШАГ 1: Конвертируем введенную сумму в БАЗУ (USD)
-            // Курсы в EXCHANGE_RATES даны как 1 USD = X.
-            // Чтобы получить 1 X = USD, нужно разделить на X (Курс/USD).
             let amountInUSD = 0;
             if (baseCurrency === 'USD') {
                 amountInUSD = amount;
             } else if (EXCHANGE_RATES[baseCurrency]) {
-                // 1 USD = X * BaseRate. Значит, X Base = 1 USD / BaseRate
+                // Пересчитываем из базовой в USD
                 amountInUSD = amount / EXCHANGE_RATES[baseCurrency];
             }
-            
+
             // ШАГ 2: Пересчитываем сумму в USD во все целевые валюты
             TARGET_CURRENCIES.forEach(target => {
                 let finalResult = 0;
-                
+
                 if (target === 'USD') {
                     finalResult = amountInUSD;
                 } else if (EXCHANGE_RATES[target]) {
-                    // 1 USD = X * TargetRate
                     finalResult = amountInUSD * EXCHANGE_RATES[target];
                 }
 
@@ -375,20 +380,20 @@
                 const element = document.getElementById('res-' + target.toLowerCase());
                 if (element) {
                      // Выделяем базовую валюту белым, остальные синим
-                     const color = (target === baseCurrency) ? 'white' : var(--accent-color);
+                     const color = (target === baseCurrency) ? 'white' : 'var(--accent-color)';
                      element.style.color = color;
 
-                    element.textContent = finalResult.toLocaleString('en-US', { 
-                        minimumFractionDigits: 2, 
-                        maximumFractionDigits: 2 
+                    element.textContent = finalResult.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
                     });
                 }
             });
         }
 
+        // Убедимся, что начальное значение 0 при очистке
+        input.value = '0';
+
         // Инициализация при загрузке: загружаем курсы и запускаем конвертер
         fetchRates();
-        updateConverter('0'); 
     </script>
-</body>
-</html>
